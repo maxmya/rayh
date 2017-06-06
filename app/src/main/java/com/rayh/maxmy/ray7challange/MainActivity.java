@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
@@ -37,6 +38,10 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.json.JSONObject;
 
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity
@@ -53,7 +58,6 @@ public class MainActivity extends AppCompatActivity
     private Location currentLocation;
     private SupportMapFragment mapFragment;
     private static final String ADDRESS_API = "http://maps.googleapis.com/maps/api/geocode/json?latlng=";
-    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -127,8 +131,6 @@ public class MainActivity extends AppCompatActivity
         ((EditText) autocompleteTo.getView().findViewById(R.id.place_autocomplete_search_input)).setHint("Ending Point");
 
 
-        progressDialog = new ProgressDialog(this);
-
     }
 
     @Override
@@ -184,15 +186,14 @@ public class MainActivity extends AppCompatActivity
         if (toMarker != null)
             toMarker.remove();
 
-        progressDialog.setMessage("Getting Location Address...");
-        progressDialog.show();
 
         toMarker = mMap.addMarker(new MarkerOptions()
                 .position(point)
                 .title("Destination")
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
 
-        autocompleteTo.setText(getAddress(point));
+        getAddress(point, autocompleteTo);
+
 
     }
 
@@ -200,8 +201,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onMyLocationButtonClick() {
 
-        progressDialog.setMessage("Getting Location Address...");
-        progressDialog.show();
 
         currentLocation = getLastKnownLocation();
 
@@ -214,8 +213,7 @@ public class MainActivity extends AppCompatActivity
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
         );
 
-        autocompleteFrom.setText(getAddress(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude())));
-
+        getAddress(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), autocompleteFrom);
         return true;
     }
 
@@ -236,8 +234,7 @@ public class MainActivity extends AppCompatActivity
                 bestLocation = l;
             }
         }
-        if (progressDialog.isShowing())
-            progressDialog.dismiss();
+
         return bestLocation;
     }
 
@@ -261,31 +258,17 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-
-    public String getAddress(LatLng point) {
+    // pass fragment by reference to change it from async task
+    public void getAddress(LatLng point, PlaceAutocompleteFragment view) {
         String lat = String.valueOf(point.latitude);
         String lng = String.valueOf(point.longitude);
-        String result = "";
-        String address = "";
+        DownloadTask mTask = new DownloadTask(MainActivity.this, view);
+        mTask.execute(ADDRESS_API + lat + "," + lng + "&sensor=true");
 
-        try {
-            DownloadTask mTask = new DownloadTask();
-            result = mTask.execute(ADDRESS_API + lat + "," + lng + "&sensor=true").get();
-            JSONObject jsonObjectLocation =
-                    new JSONObject(result).getJSONArray("results").getJSONObject(0);
-            address = jsonObjectLocation.getString("formatted_address");
-
-            if (progressDialog.isShowing())
-                progressDialog.dismiss();
-
-            return address;
-
-        } catch (Exception e) {
-            Log.e("mERROR", e.getMessage());
-            return "No Address Available";
-        }
 
     }
 
 
 }
+
+
