@@ -1,23 +1,25 @@
 package com.rayh.maxmy.ray7challange;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.pm.PackageManager;
-import android.location.Address;
-import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.EditText;
-import android.widget.TextView;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.Status;
@@ -33,19 +35,25 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import java.util.ArrayList;
+import org.json.JSONObject;
+
 import java.util.List;
-import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleMap.OnMapLongClickListener, PlaceSelectionListener, GoogleMap.OnMyLocationButtonClickListener {
+        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleMap.OnMapLongClickListener, GoogleMap.OnMyLocationButtonClickListener, LocationListener {
 
 
     private GoogleMap mMap;
     private DrawerLayout drawer;
-    private Marker holdClickMarker;
+    private Marker fromMarker;
+    private Marker toMarker;
     private PlaceAutocompleteFragment autocompleteFrom;
     private PlaceAutocompleteFragment autocompleteTo;
+    private LocationManager locationManager;
+    private Location currentLocation;
+    private SupportMapFragment mapFragment;
+    private static final String ADDRESS_API = "http://maps.googleapis.com/maps/api/geocode/json?latlng=";
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,7 +61,7 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
 
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+        mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
@@ -75,15 +83,51 @@ public class MainActivity extends AppCompatActivity
 
         autocompleteFrom = (PlaceAutocompleteFragment)
                 getFragmentManager().findFragmentById(R.id.from_autocomplete);
-        autocompleteFrom.setOnPlaceSelectedListener(this);
+        autocompleteFrom.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(Place place) {
+                if (fromMarker != null)
+                    fromMarker.remove();
+
+                fromMarker = mMap.addMarker(new MarkerOptions()
+                        .position(place.getLatLng()).title("from " + place.getAddress().toString())
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+                );
+            }
+
+            @Override
+            public void onError(Status status) {
+
+                Toast.makeText(MainActivity.this, "Error :" + status.getStatusMessage(), Toast.LENGTH_SHORT).show();
+
+            }
+        });
         ((EditText) autocompleteFrom.getView().findViewById(R.id.place_autocomplete_search_input)).setHint("Trip Starting Point");
 
 
         autocompleteTo = (PlaceAutocompleteFragment)
                 getFragmentManager().findFragmentById(R.id.to_autocomplete);
-        autocompleteTo.setOnPlaceSelectedListener(this);
+        autocompleteTo.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(Place place) {
+                if (toMarker != null)
+                    toMarker.remove();
+
+                toMarker = mMap.addMarker(new MarkerOptions()
+                        .position(place.getLatLng()).title("to " + place.getAddress().toString())
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
+                );
+            }
+
+            @Override
+            public void onError(Status status) {
+                Toast.makeText(MainActivity.this, "Error :" + status.getStatusMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
         ((EditText) autocompleteTo.getView().findViewById(R.id.place_autocomplete_search_input)).setHint("Ending Point");
 
+
+        progressDialog = new ProgressDialog(this);
 
     }
 
@@ -121,65 +165,127 @@ public class MainActivity extends AppCompatActivity
         } else {
         }
 
-//        LatLng sydney = new LatLng(-34, 151);
-//        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-//        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        // move myLocation button to bottom right
+        View lb = ((View) mapFragment.getView().findViewById(1).getParent()).findViewById(2);
+        RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)
+                lb.getLayoutParams();
+        layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
+        layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
+        layoutParams.setMargins(0, 0, 30, 30);
+
+        // move camera to egypt
+        LatLng egypt = new LatLng(30.0444, 31.2357);
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(egypt, 5.0f));
     }
 
     @Override
     public void onMapLongClick(LatLng point) {
 
-        if (holdClickMarker != null)
-            holdClickMarker.remove();
+        if (toMarker != null)
+            toMarker.remove();
 
-        holdClickMarker = mMap.addMarker(new MarkerOptions()
+        progressDialog.setMessage("Getting Location Address...");
+        progressDialog.show();
+
+        toMarker = mMap.addMarker(new MarkerOptions()
                 .position(point)
                 .title("Destination")
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
 
-        // convert LatLng to address and put it into the To autocomplete text view
+        autocompleteTo.setText(getAddress(point));
+
+    }
+
+
+    @Override
+    public boolean onMyLocationButtonClick() {
+
+        progressDialog.setMessage("Getting Location Address...");
+        progressDialog.show();
+
+        currentLocation = getLastKnownLocation();
+
+        if (fromMarker != null)
+            fromMarker.remove();
+
+        fromMarker = mMap.addMarker(new MarkerOptions()
+                .position(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()))
+                .title("Current Location")
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+        );
+
+        autocompleteFrom.setText(getAddress(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude())));
+
+        return true;
+    }
+
+    private Location getLastKnownLocation() {
+
+        locationManager = (LocationManager) getApplicationContext().getSystemService(LOCATION_SERVICE);
+        List<String> providers = locationManager.getProviders(true);
+        Location bestLocation = null;
+        for (String provider : providers) {
+            if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                continue;
+            }
+            Location l = locationManager.getLastKnownLocation(provider);
+            if (l == null) {
+                continue;
+            }
+            if (bestLocation == null || l.getAccuracy() < bestLocation.getAccuracy()) {
+                bestLocation = l;
+            }
+        }
+        if (progressDialog.isShowing())
+            progressDialog.dismiss();
+        return bestLocation;
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        currentLocation = location;
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+
+    }
+
+
+    public String getAddress(LatLng point) {
+        String lat = String.valueOf(point.latitude);
+        String lng = String.valueOf(point.longitude);
+        String result = "";
+        String address = "";
+
         try {
+            DownloadTask mTask = new DownloadTask();
+            result = mTask.execute(ADDRESS_API + lat + "," + lng + "&sensor=true").get();
+            JSONObject jsonObjectLocation =
+                    new JSONObject(result).getJSONArray("results").getJSONObject(0);
+            address = jsonObjectLocation.getString("formatted_address");
 
-            Geocoder geocoder = new Geocoder(this);
-            if (geocoder == null) {
-                Log.d("MEHERE", "a7a");
+            if (progressDialog.isShowing())
+                progressDialog.dismiss();
 
-            }
-            List<Address> addresses = geocoder.getFromLocation(point.longitude, point.latitude, 1);
-            Log.d("MEHERE", addresses.toString());
-
-            if (addresses != null && addresses.size() > 0) {
-                String address = addresses.get(0).getAddressLine(0) + " " + addresses.get(0).getAddressLine(1);
-                if (address != null) {
-                    ((EditText) autocompleteTo.getView().findViewById(R.id.place_autocomplete_search_input)).setText(address);
-
-                } else {
-                    ((EditText) autocompleteTo.getView().findViewById(R.id.place_autocomplete_search_input)).setText("No Address Available");
-                }
-            }
+            return address;
 
         } catch (Exception e) {
-            Toast.makeText(this, "ERROR " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            Log.e("mERROR", e.getMessage());
+            return "No Address Available";
         }
 
     }
 
 
-    @Override
-    public void onPlaceSelected(Place place) {
-
-    }
-
-    @Override
-    public void onError(Status status) {
-
-    }
-
-    @Override
-    public boolean onMyLocationButtonClick() {
-
-
-
-        return false;
-    }
 }
