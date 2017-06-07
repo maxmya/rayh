@@ -22,7 +22,7 @@ import java.net.URL;
 /**
  * Created by Maxmya on 19/08/2016.
  */
-public class DownloadTask extends AsyncTask<String, Void, String> {
+public class GetAddressTask extends AsyncTask<String, Void, String> {
 
     private ProgressDialog progressDialog;
     private Context activity;
@@ -30,7 +30,7 @@ public class DownloadTask extends AsyncTask<String, Void, String> {
     private PlaceAutocompleteFragment view;
 
 
-    public DownloadTask(Context activity, PlaceAutocompleteFragment view) {
+    public GetAddressTask(Context activity, PlaceAutocompleteFragment view) {
 
         this.activity = activity;
         this.view = view;

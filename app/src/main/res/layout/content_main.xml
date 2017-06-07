@@ -33,7 +33,7 @@
             <TextView
                 android:layout_width="50dp"
                 android:layout_height="wrap_content"
-                android:layout_margin="10sp"
+                android:layout_margin="15sp"
                 android:text="From" />
 
             <fragment
@@ -54,7 +54,7 @@
             <TextView
                 android:layout_width="50dp"
                 android:layout_height="wrap_content"
-                android:layout_margin="10sp"
+                android:layout_margin="15sp"
                 android:text="To" />
 
             <fragment
@@ -66,6 +66,7 @@
         </LinearLayout>
 
     </LinearLayout>
+
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -80,6 +81,7 @@
             android:layout_gravity="left"
             android:layout_margin="15dp"
             android:background="@drawable/roundedbutton"
+            android:clickable="true"
             android:padding="20sp"
             android:text="Take MY Car"
             android:textColor="#ffff" />
@@ -91,9 +93,11 @@
             android:layout_gravity="right"
             android:layout_margin="15dp"
             android:background="@drawable/roundedbuttonwithboundry"
+            android:clickable="true"
             android:padding="20sp"
             android:text="Request A Pickup"
             android:textColor="#50AD98" />
+
 
     </LinearLayout>
 
