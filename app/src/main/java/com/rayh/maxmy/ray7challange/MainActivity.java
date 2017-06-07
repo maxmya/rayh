@@ -328,6 +328,7 @@ public class MainActivity extends AppCompatActivity
         } else if (v == autocompleteToCancelBtn) {
 
             toMarker.remove();
+            toMarker = null;
 
             if (lines != null)
                 lines.remove();
@@ -337,6 +338,7 @@ public class MainActivity extends AppCompatActivity
         } else if (v == autocompleteFromCancelBtn) {
 
             fromMarker.remove();
+            fromMarker = null;
 
             if (lines != null)
                 lines.remove();
