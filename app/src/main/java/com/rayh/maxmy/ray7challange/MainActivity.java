@@ -332,12 +332,16 @@ public class MainActivity extends AppCompatActivity
             if (lines != null)
                 lines.remove();
 
+            autocompleteTo.setText("");
+
         } else if (v == autocompleteFromCancelBtn) {
 
             fromMarker.remove();
 
             if (lines != null)
                 lines.remove();
+
+            autocompleteFrom.setText(null);
 
         }
 
