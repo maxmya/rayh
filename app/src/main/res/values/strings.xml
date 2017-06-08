@@ -1,10 +1,27 @@
 <resources>
-    <string name="app_name">Ray7Challenge</string>
+    <string name="app_name">Raye7 By Maxmya</string>
     <string name="name">Raye7</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_maps">Map</string>
+    <string name="from">From</string>
+    <string name="to">To</string>
+    <string name="source">Source Address</string>
+    <string name="destination">Destination Address</string>
+    <string name="takeMyCar">Take My Car</string>
+    <string name="requestPickup">Request A Pickup</string>
+    <string name="selectDestinationAndSourceFirst">Select Destination And Source First</string>
+    <string name="gettingLocationAddress">Getting Location Address</string>
+    <string name="gettingRoutInfo">Getting Rout Info</string>
+    <string name="warning">Warning</string>
+    <string name="serviceNotWorking">Please Open GPS and Internet</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="close">Close</string>
+    <string name="currentLocation">Current Location</string>
+    <string name="unableToDrawRout">Unable To Draw Rout</string>
+
     <!--todo add strings here-->
 
 </resources>

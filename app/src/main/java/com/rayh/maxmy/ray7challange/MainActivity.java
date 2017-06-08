@@ -145,7 +145,7 @@ public class MainActivity extends AppCompatActivity
 
             }
         });
-        ((EditText) autocompleteFrom.getView().findViewById(R.id.place_autocomplete_search_input)).setHint("Trip Starting Point");
+        ((EditText) autocompleteFrom.getView().findViewById(R.id.place_autocomplete_search_input)).setHint(getString(R.string.source));
 
         autocompleteFromCancelBtn = autocompleteFrom.getView().findViewById(R.id.place_autocomplete_clear_button);
         autocompleteFromCancelBtn.setOnClickListener(this);
@@ -173,7 +173,7 @@ public class MainActivity extends AppCompatActivity
                 Toast.makeText(MainActivity.this, "Error :" + status.getStatusMessage(), Toast.LENGTH_SHORT).show();
             }
         });
-        ((EditText) autocompleteTo.getView().findViewById(R.id.place_autocomplete_search_input)).setHint("Ending Point");
+        ((EditText) autocompleteTo.getView().findViewById(R.id.place_autocomplete_search_input)).setHint(getString(R.string.destination));
 
         autocompleteToCancelBtn = autocompleteTo.getView().findViewById(R.id.place_autocomplete_clear_button);
         autocompleteToCancelBtn.setOnClickListener(this);
@@ -190,7 +190,7 @@ public class MainActivity extends AppCompatActivity
 
         // progress dialog for drawing rout
         progressDialog = new ProgressDialog(this);
-        progressDialog.setMessage("Getting Rout Info ..");
+        progressDialog.setMessage(getString(R.string.gettingRoutInfo));
     }
 
     @Override
@@ -249,7 +249,7 @@ public class MainActivity extends AppCompatActivity
 
         toMarker = mMap.addMarker(new MarkerOptions()
                 .position(point)
-                .title("Destination")
+                .title(getString(R.string.destination))
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
 
         getAddress(point, autocompleteTo);
@@ -257,7 +257,6 @@ public class MainActivity extends AppCompatActivity
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(toMarker.getPosition(), 10));
 
     }
-
 
     @Override
     public boolean onMyLocationButtonClick() {
@@ -270,7 +269,7 @@ public class MainActivity extends AppCompatActivity
 
         fromMarker = mMap.addMarker(new MarkerOptions()
                 .position(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()))
-                .title("Current Location")
+                .title(getString(R.string.currentLocation))
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
         );
 
@@ -358,7 +357,7 @@ public class MainActivity extends AppCompatActivity
             if (lines != null)
                 lines.remove();
 
-            autocompleteFrom.setText(null);
+            autocompleteFrom.setText("");
 
         } else if (v == pickMyCar || v == requestPickup) { // same action , better to separate bs when they changed
 
@@ -373,7 +372,7 @@ public class MainActivity extends AppCompatActivity
             showWayRout();
             openTimeDateDialog();
         } else {
-            Toast.makeText(this, "Choose Source & Destination First", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.selectDestinationAndSourceFirst), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -400,7 +399,7 @@ public class MainActivity extends AppCompatActivity
             lines.remove();
 
         if (fromMarker == null || toMarker == null) {
-            Toast.makeText(this, "Select Source and Destination First", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.selectDestinationAndSourceFirst), Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -414,7 +413,6 @@ public class MainActivity extends AppCompatActivity
         mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 10));
 
     }
-
 
     // open source methods to parse directions and draw rout , i made some changes to sut my app
     private String getDirectionsUrl(LatLng origin, LatLng dest) {
@@ -545,7 +543,8 @@ public class MainActivity extends AppCompatActivity
             String duration = "";
 
             if (result.size() < 1) {
-                Toast.makeText(getBaseContext(), "No Points", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getBaseContext(), getString(R.string.unableToDrawRout), Toast.LENGTH_SHORT).show();
+                progressDialog.dismiss();
                 return;
             }
 

@@ -33,7 +33,8 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/spacer"
         android:layout_centerHorizontal="true"
-        android:layout_margin="10sp"
+        android:layout_marginLeft="50dp"
+        android:layout_marginRight="50dp"
         android:indeterminateOnly="true" />
 
 

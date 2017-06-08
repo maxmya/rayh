@@ -34,7 +34,7 @@
                 android:layout_width="50dp"
                 android:layout_height="wrap_content"
                 android:layout_margin="20sp"
-                android:text="From" />
+                android:text="@string/from" />
 
             <fragment
                 android:id="@+id/from_autocomplete"
@@ -55,7 +55,7 @@
                 android:layout_width="50dp"
                 android:layout_height="wrap_content"
                 android:layout_margin="20sp"
-                android:text="To" />
+                android:text="@string/to" />
 
             <fragment
                 android:id="@+id/to_autocomplete"
@@ -83,7 +83,7 @@
             android:background="@drawable/roundedbutton"
             android:clickable="true"
             android:padding="10sp"
-            android:text="Take MY Car"
+            android:text="@string/takeMyCar"
             android:textColor="#ffff" />
 
         <Button
@@ -95,7 +95,7 @@
             android:background="@drawable/roundedbuttonwithboundry"
             android:clickable="true"
             android:padding="10sp"
-            android:text="Request A Pickup"
+            android:text="@string/requestPickup"
             android:textColor="#50AD98" />
 
 

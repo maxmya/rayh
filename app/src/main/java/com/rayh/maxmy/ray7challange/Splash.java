@@ -23,18 +23,10 @@ public class Splash extends AppCompatActivity {
         handler.postDelayed(new Runnable() {
             public void run() {
                 AlertDialog.Builder builder = new AlertDialog.Builder(Splash.this);
-                builder.setTitle("Warning");
-                builder.setMessage("Please Open GPS and Internet");
+                builder.setTitle(getString(R.string.warning));
+                builder.setMessage(getString(R.string.serviceNotWorking));
 
-                builder.setPositiveButton("OK",
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                finish();
-                            }
-                        });
-
-                builder.setNegativeButton("Cancel",
+                builder.setPositiveButton("Close",
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
