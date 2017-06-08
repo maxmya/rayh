@@ -38,6 +38,8 @@ public class Splash extends AppCompatActivity {
                 if (!isGpsAvailable() || !isNetworkAvailable()) {
                     AlertDialog dialog = builder.create();
                     dialog.show();
+                    dialog.setCancelable(false);
+                    dialog.setCanceledOnTouchOutside(false);
                     return;
                 }
 
@@ -49,7 +51,7 @@ public class Splash extends AppCompatActivity {
 
 
             }
-        }, 5000);
+        }, 3000);
 
     }
 

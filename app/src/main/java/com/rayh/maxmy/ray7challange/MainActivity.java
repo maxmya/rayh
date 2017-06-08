@@ -233,7 +233,7 @@ public class MainActivity extends AppCompatActivity
                 lb.getLayoutParams();
         layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
         layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
-        layoutParams.setMargins(0, 0, 30, 30);
+        layoutParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
 
         // move camera to egypt
         LatLng egypt = new LatLng(30.0444, 31.2357);
