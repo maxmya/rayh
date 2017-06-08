@@ -15,15 +15,18 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.Status;
@@ -51,6 +54,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 
@@ -129,6 +134,8 @@ public class MainActivity extends AppCompatActivity
                         .position(place.getLatLng()).title("from " + place.getAddress().toString())
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
                 );
+
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(fromMarker.getPosition(), 10));
             }
 
             @Override
@@ -156,6 +163,9 @@ public class MainActivity extends AppCompatActivity
                         .position(place.getLatLng()).title("to " + place.getAddress().toString())
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
                 );
+
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(toMarker.getPosition(), 10));
+
             }
 
             @Override
@@ -244,6 +254,7 @@ public class MainActivity extends AppCompatActivity
 
         getAddress(point, autocompleteTo);
 
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(toMarker.getPosition(), 10));
 
     }
 
@@ -264,9 +275,13 @@ public class MainActivity extends AppCompatActivity
         );
 
         getAddress(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), autocompleteFrom);
+
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(fromMarker.getPosition(), 10));
+
         return true;
     }
 
+    // get current location from last assigned data in device
     private Location getLastKnownLocation() {
 
         locationManager = (LocationManager) getApplicationContext().getSystemService(LOCATION_SERVICE);
@@ -312,15 +327,15 @@ public class MainActivity extends AppCompatActivity
     public void getAddress(LatLng point, PlaceAutocompleteFragment view) {
         String lat = String.valueOf(point.latitude);
         String lng = String.valueOf(point.longitude);
+        // use async task to get json from locations api
         GetAddressTask mTask = new GetAddressTask(MainActivity.this, view);
         mTask.execute(ADDRESS_API + lat + "," + lng + "&sensor=true");
-
-
     }
 
     @Override
     public void onClick(View v) {
 
+        // top right button to show way without request
         if (v == showWay) {
 
             showWayRout();
@@ -345,12 +360,40 @@ public class MainActivity extends AppCompatActivity
 
             autocompleteFrom.setText(null);
 
+        } else if (v == pickMyCar || v == requestPickup) { // same action , better to separate bs when they changed
+
+            requestClick();
+
         }
-
-
     }
 
+    // preform action of click bring time date picker and draw rout
+    public void requestClick() {
+        if (fromMarker != null && toMarker != null) {
+            showWayRout();
+            openTimeDateDialog();
+        } else {
+            Toast.makeText(this, "Choose Source & Destination First", Toast.LENGTH_SHORT).show();
+        }
+    }
 
+    // open alert dialog with time and date without using date or time !
+    public void openTimeDateDialog() {
+        final View dialogView = View.inflate(this, R.layout.time_data_dialog, null);
+        final AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+
+        dialogView.findViewById(R.id.date_time_set).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                alertDialog.dismiss();
+            }
+        });
+        alertDialog.setView(dialogView);
+        alertDialog.show();
+    }
+
+    // draw rout from source to destination
     public void showWayRout() {
 
         if (lines != null)
@@ -372,8 +415,8 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    // open source methods to parse directions and draw rout , i made some changes to sut my app
 
+    // open source methods to parse directions and draw rout , i made some changes to sut my app
     private String getDirectionsUrl(LatLng origin, LatLng dest) {
 
         // Origin of route
@@ -471,7 +514,6 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-
     private class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<String, String>>>> {
 
         // Parsing the data in non-ui thread
@@ -544,6 +586,7 @@ public class MainActivity extends AppCompatActivity
             // Drawing polyline in the Google Map for the i-th route
             lines = mMap.addPolyline(lineOptions);
             progressDialog.dismiss();
+
         }
 
 

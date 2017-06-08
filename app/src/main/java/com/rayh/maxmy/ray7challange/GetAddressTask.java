@@ -21,6 +21,9 @@ import java.net.URL;
 
 /**
  * Created by Maxmya on 19/08/2016.
+ * this class i made in past to download json
+ * Updated by Maxmya on 6/6/2017.
+ * added complete parsing for json to doInBackground
  */
 public class GetAddressTask extends AsyncTask<String, Void, String> {
 
